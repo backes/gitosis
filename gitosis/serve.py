@@ -10,10 +10,9 @@ import sys, os, re
 
 from gitosis import access
 from gitosis import repository
-from gitosis import gitweb
-from gitosis import gitdaemon
 from gitosis import app
 from gitosis import util
+from gitosis import run_hook
 
 log = logging.getLogger('gitosis.serve')
 
@@ -141,17 +140,7 @@ def serve(cfg, user, command):
             util.mkdir(path, 0750)
 
         repository.init(path=fullpath)
-        gitweb.set_descriptions(
-            config=cfg,
-            )
-        generated = util.getGeneratedFilesDir(config=cfg)
-        gitweb.generate_project_list(
-            config=cfg,
-            path=os.path.join(generated, 'projects.list'),
-            )
-        gitdaemon.set_export_ok(
-            config=cfg,
-            )
+        run_hook.build_reposistory_data(cfg)
 
     # put the verb back together with the new path
     newcmd = "%(verb)s '%(path)s'" % dict(
