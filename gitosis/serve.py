@@ -17,7 +17,9 @@ from gitosis import util
 
 log = logging.getLogger('gitosis.serve')
 
-ALLOW_RE = re.compile("^'/*(?P<path>[a-zA-Z0-9][a-zA-Z0-9@._-]*(/[a-zA-Z0-9][a-zA-Z0-9@._-]*)*)'$")
+ALLOW_RE = re.compile(
+    "^'(?P<path>[a-zA-Z0-9][a-zA-Z0-9@._-]*(/[a-zA-Z0-9][a-zA-Z0-9@._-]*)*)'$"
+    )
 
 COMMANDS_READONLY = [
     'git-upload-pack',
@@ -53,11 +55,8 @@ class WriteAccessDenied(AccessDenied):
 class ReadAccessDenied(AccessDenied):
     """Repository read access denied"""
 
-def serve(
-    cfg,
-    user,
-    command,
-    ):
+def serve(cfg, user, command):
+    """Check the git command for sanity, and then run the git command."""
     if '\n' in command:
         raise CommandMayNotContainNewlineError()
 
@@ -136,10 +135,10 @@ def serve(
         # authorized to do that: create the repository on the fly
 
         # create leading directories
-        p = topdir
+        path = topdir
         for segment in repopath.split(os.sep)[:-1]:
-            p = os.path.join(p, segment)
-            util.mkdir(p, 0750)
+            path = os.path.join(path, segment)
+            util.mkdir(path, 0750)
 
         repository.init(path=fullpath)
         gitweb.set_descriptions(
@@ -162,7 +161,13 @@ def serve(
     return newcmd
 
 class Main(app.App):
+    """gitosis-serve program."""
+    # W0613 - They also might ignore arguments here, where the descendant
+    # methods won't.
+    # pylint: disable-msg=W0613
+
     def create_parser(self):
+        """Declare the input for this program."""
         parser = super(Main, self).create_parser()
         parser.set_usage('%prog [OPTS] USER')
         parser.set_description(
@@ -170,6 +175,7 @@ class Main(app.App):
         return parser
 
     def handle_args(self, parser, cfg, options, args):
+        """Parse the input for this program."""
         try:
             (user,) = args
         except ValueError:
@@ -195,8 +201,8 @@ class Main(app.App):
                 user=user,
                 command=cmd,
                 )
-        except ServingError, e:
-            main_log.error('%s', e)
+        except ServingError, ex:
+            main_log.error('%s', ex)
             sys.exit(1)
 
         main_log.debug('Serving %s', newcmd)
