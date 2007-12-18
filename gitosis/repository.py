@@ -52,7 +52,7 @@ def init(
         stdout=sys.stderr,
         close_fds=True,
         )
-    if returncode != 0:
+    if returncode != 0: #pragma: no cover
         raise GitInitError('exit status %d' % returncode)
 
 
@@ -115,7 +115,7 @@ from %(parent)s
         child.stdin.write('M 100644 :%d %s\n' % (index+1, path))
     child.stdin.close()
     returncode = child.wait()
-    if returncode != 0:
+    if returncode != 0: #pragma: no cover
         raise GitFastImportError(
             'git fast-import failed', 'exit status %d' % returncode)
 
@@ -141,7 +141,7 @@ def export(git_dir, path):
             ],
         close_fds=True,
         )
-    if returncode != 0:
+    if returncode != 0: #pragma: no cover
         raise GitReadTreeError('exit status %d' % returncode)
     # jumping through hoops to be compatible with git versions
     # that don't have --work-tree=
@@ -160,7 +160,7 @@ def export(git_dir, path):
         close_fds=True,
         env=env,
         )
-    if returncode != 0:
+    if returncode != 0: #pragma: no cover
         raise GitCheckoutIndexError('exit status %d' % returncode)
 
 class GitHasInitialCommitError(GitError):
@@ -190,5 +190,5 @@ def has_initial_commit(git_dir):
         return False
     elif re.match('^[0-9a-f]{40}\n$', got):
         return True
-    else:
+    else: #pragma: no cover
         raise GitHasInitialCommitError('Unknown git HEAD: %r' % got)
