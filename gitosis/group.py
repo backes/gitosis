@@ -48,7 +48,10 @@ def _getMembership(config, user, seen):
                 config, '@%s' % group, seen,
                 ):
                 yield member_of
-
+            for member_of in _getMembership(
+                config, '@all', seen,
+                ):
+                yield member_of
 
 def getMembership(config, user):
     """
