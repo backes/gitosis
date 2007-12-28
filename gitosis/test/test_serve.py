@@ -215,6 +215,23 @@ def test_simple_read_space():
         )
     eq(got, "git upload-pack '%s/foo.git'" % tmp)
 
+def test_simple_read_absolute():
+    tmp = util.maketemp()
+    full_path = os.path.join(tmp, 'foo.git')
+    repository.init(full_path)
+    cfg = RawConfigParser()
+    cfg.add_section('gitosis')
+    cfg.set('gitosis', 'repositories', tmp)
+    cfg.add_section('group foo')
+    cfg.set('group foo', 'members', 'jdoe')
+    cfg.set('group foo', 'readonly', 'foo')
+    got = serve.serve(
+        cfg=cfg,
+        user='jdoe',
+        command="git-upload-pack '%s'" % (full_path, ),
+        )
+    eq(got, "git-upload-pack '%s/foo.git'" % tmp)
+
 def test_read_inits_if_needed():
     # a clone of a non-existent repository (but where config
     # authorizes you to do that) will create the repository on the fly
@@ -238,6 +255,22 @@ def test_read_inits_if_needed():
     eq(got, "git-upload-pack '%s/foo.git'" % repositories)
     eq(os.listdir(repositories), ['foo.git'])
     assert os.path.isfile(os.path.join(repositories, 'foo.git', 'HEAD'))
+
+def test_simple_read_leading_slash():
+    tmp = util.maketemp()
+    repository.init(os.path.join(tmp, 'foo.git'))
+    cfg = RawConfigParser()
+    cfg.add_section('gitosis')
+    cfg.set('gitosis', 'repositories', tmp)
+    cfg.add_section('group foo')
+    cfg.set('group foo', 'members', 'jdoe')
+    cfg.set('group foo', 'readonly', 'foo')
+    got = serve.serve(
+        cfg=cfg,
+        user='jdoe',
+        command="git-upload-pack '/foo'",
+        )
+    eq(got, "git-upload-pack '%s/foo.git'" % tmp)
 
 def test_simple_write_dash():
     tmp = util.maketemp()
